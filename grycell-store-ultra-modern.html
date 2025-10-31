@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grycell Store - Tecnología Premium en Perú</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d9ff;
+            --primary-dark: #00a8cc;
+            --secondary: #7c3aed;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gray: #64748b;
+            --light: #f1f5f9;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animated {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animated::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 217, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Header Ultra Modern */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-top {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            padding: 0.5rem 0;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-subtitle {
+            font-size: 0.75rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+
+        .nav-menu a:hover::after {
+            width: 100%;
+        }
+
+        .nav-menu a:hover {
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 217, 255, 0.5);
+        }
+
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.8rem;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.5));
+        }
+
+        .cart-icon:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Hero Section Ultra Modern */
+        .hero {
+            position: relative;
+            padding: 8rem 2rem;
+            text-align: center;
+            z-index: 1;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(0, 217, 255, 0.1));
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(0, 217, 255, 0.2), transparent);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease;
+            line-height: 1.2;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--gray);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        .btn-hero {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-hero-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-hero-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-hero:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 217, 255, 0.5);
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Section Title */
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--gray);
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* COMBOS PC Section - ULTRA MODERN */
+        .combos-section {
+            margin-bottom: 5rem;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(0, 217, 255, 0.05));
+            border-radius: 30px;
+        }
+
+        .combos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .combo-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .combo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .combo-card:hover::before {
+            left: 100%;
+        }
+
+        .combo-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 50px rgba(0, 217, 255, 0.3);
+        }
+
+        .combo-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, var(--accent), #f97316);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .combo-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .combo-icon {
+            font-size: 4rem;
+            text-align: center;
+            margin: 1.5rem 0;
+            filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.5));
+        }
+
+        .combo-specs {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 1.5rem 0;
+        }
+
+        .combo-spec-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.95rem;
+        }
+
+        .combo-spec-item:last-child {
+            border-bottom: none;
+        }
+
+        .combo-spec-icon {
+            font-size: 1.3rem;
+            width: 30px;
+        }
+
+        .combo-price-container {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .combo-price {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary);
+            display: block;
+            text-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+        }
+
+        .combo-price-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+
+        .btn-combo {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-combo:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 217, 255, 0.5);
+        }
+
+        /* Categories Modern */
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .category-btn {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.2rem;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .category-btn:hover,
+        .category-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+        }
+
+        /* Filters Modern */
+        .filters {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-item label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .filter-item select,
+        .filter-item input {
+            width: 100%;
+            padding: 0.9rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-item select:focus,
+        .filter-item input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        /* Products Counter */
+        .products-counter {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+        }
+
+        /* Products Table Modern */
+        .products-table {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 100px 1fr 100px 150px 180px;
+            gap: 1rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .product-row {
+            display: grid;
+            grid-template-columns: 100px 1fr 100px 150px 180px;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            align-items: center;
+        }
+
+        .product-row:hover {
+            background: rgba(0, 217, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .product-img {
+            font-size: 3rem;
+            text-align: center;
+            filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.5));
+        }
+
+        .product-info h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .product-id {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .product-category {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: linear-gradient(135deg, var(--secondary), #6d28d9);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        .product-stock {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--success);
+        }
+
+        .product-price {
+            text-align: center;
+        }
+
+        .price-original {
+            font-size: 0.8rem;
+            color: var(--gray);
+            text-decoration: line-through;
+            display: none; /* Oculto */
+        }
+
+        .price-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            display: block;
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+        }
+
+        .price-badge {
+            display: none; /* Oculto */
+            padding: 0.3rem 0.6rem;
+            background: var(--success);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+            font-weight: 700;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-action {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 10px 25px rgba(0, 217, 255, 0.5);
+        }
+
+        /* Cart Modal Ultra Modern */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cart-content {
+            background: linear-gradient(135deg, var(--dark), var(--dark-light));
+            padding: 2.5rem;
+            border-radius: 25px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .cart-header h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .close-cart {
+            cursor: pointer;
+            font-size: 2.5rem;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+        .close-cart:hover {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .cart-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+        }
+
+        .cart-item-img {
+            font-size: 3rem;
+            filter: drop-shadow(0 0 15px rgba(0, 217, 255, 0.5));
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .cart-item-price {
+            color: var(--primary);
+            font-weight: 900;
+            font-size: 1.3rem;
+            text-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+        }
+
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+
+        .btn-qty {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-qty:hover {
+            transform: scale(1.2);
+            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.5);
+        }
+
+        .btn-remove {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .btn-remove:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .cart-total {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 3px solid var(--primary);
+            font-size: 2rem;
+            font-weight: 900;
+            text-align: right;
+            color: var(--primary);
+            text-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray);
+            font-size: 1.3rem;
+        }
+
+        .btn-checkout {
+            width: 100%;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-top: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-checkout:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Contact Section Modern */
+        .contact-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 4rem 2rem;
+            border-radius: 30px;
+            margin-top: 4rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .contact-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 15px 40px rgba(0, 217, 255, 0.3);
+        }
+
+        .contact-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.5));
+        }
+
+        .contact-card h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+
+        .contact-form {
+            max-width: 700px;
+            margin: 3rem auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 217, 255, 0.5);
+        }
+
+        /* Footer Modern */
+        footer {
+            background: var(--dark);
+            padding: 4rem 2rem 2rem;
+            margin-top: 5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .footer-section h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+            transform: translateX(5px);
+            display: inline-block;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+        }
+
+        /* Notification Modern */
+        .notification {
+            display: none;
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            padding: 1.2rem 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);
+            z-index: 4000;
+            animation: slideInRight 0.4s ease;
+            font-weight: 700;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero h1 { font-size: 3rem; }
+            .table-header, .product-row {
+                grid-template-columns: 80px 1fr 80px 120px 150px;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .hero h1 { font-size: 2.2rem; }
+            .hero p { font-size: 1rem; }
+            .table-header { display: none; }
+            .product-row {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .categories {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .combos-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animated"></div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">✓ Producto agregado al carrito</div>
+
+    <!-- Header -->
+    <div class="header-top">
+        🔥 ENVÍOS GRATIS EN LIMA | 📞 WhatsApp 24/7: +51 999 888 777 | 🎁 OFERTAS EXCLUSIVAS
+    </div>
+
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <div>
+                    <div class="logo-text">GRYCELL STORE</div>
+                    <div class="logo-subtitle">Tecnología Premium | Perú</div>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#combos">🎮 Combos PC</a></li>
+                <li><a href="#laptops">💻 Laptops</a></li>
+                <li><a href="#componentes">⚙️ Componentes</a></li>
+                <li><a href="#contacto">📞 Contacto</a></li>
+            </ul>
+            <div class="header-actions">
+                <button class="btn-primary" onclick="document.getElementById('contacto').scrollIntoView({behavior: 'smooth'})">
+                    Cotizar Ahora
+                </button>
+                <div class="cart-icon" onclick="toggleCart()">
+                    🛒
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Tu Tienda Premium de Tecnología en Perú</h1>
+            <p>Laptops • PC Armadas • Componentes Gaming • Las Mejores Marcas</p>
+            <div class="hero-buttons">
+                <button class="btn-hero btn-hero-primary" onclick="document.getElementById('combos').scrollIntoView({behavior: 'smooth'})">
+                    Ver Combos PC 🚀
+                </button>
+                <button class="btn-hero btn-hero-secondary" onclick="document.getElementById('productos').scrollIntoView({behavior: 'smooth'})">
+                    Explorar Catálogo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- COMBOS PC Section -->
+        <section class="combos-section" id="combos">
+            <h2 class="section-title">🎮 PC ARMADAS COMPLETAS</h2>
+            <p class="section-subtitle">Combos listos para usar | Garantía Total | Instalados y Probados</p>
+
+            <div class="combos-grid">
+                <!-- Combo 1: Gaming Entry -->
+                <div class="combo-card">
+                    <span class="combo-badge">⚡ GAMING ENTRY</span>
+                    <h3 class="combo-title">PC Gamer Starter</h3>
+                    <div class="combo-icon">🎮</div>
+                    
+                    <div class="combo-specs">
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🔥</span>
+                            <span>Intel Core i3 12100F (4 Cores, 8 Threads)</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🎮</span>
+                            <span>GTX 1650 4GB GDDR6</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">💾</span>
+                            <span>16GB RAM DDR4 3200MHz</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">💿</span>
+                            <span>SSD 480GB SATA</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🔌</span>
+                            <span>Placa Madre H610M + Fuente 500W</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🖥️</span>
+                            <span>Monitor 22" Full HD 100Hz</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">⌨️</span>
+                            <span>Teclado + Mouse Gaming RGB</span>
+                        </div>
+                    </div>
+
+                    <div class="combo-price-container">
+                        <span class="combo-price">S/ 1,210</span>
+                        <div class="combo-price-label">💰 Precio Final | Todo Incluido</div>
+                    </div>
+
+                    <button class="btn-combo" onclick="agregarCombo(1)">
+                        🛒 Agregar al Carrito
+                    </button>
+                </div>
+
+                <!-- Combo 2: Gaming Mid -->
+                <div class="combo-card">
+                    <span class="combo-badge">🔥 GAMING MID</span>
+                    <h3 class="combo-title">PC Gamer Pro</h3>
+                    <div class="combo-icon">🚀</div>
+                    
+                    <div class="combo-specs">
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🔥</span>
+                            <span>Intel Core i5 12400F (6 Cores, 12 Threads)</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🎮</span>
+                            <span>GTX 1660 Super 6GB GDDR6</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">💾</span>
+                            <span>16GB RAM DDR4 3200MHz</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">💿</span>
+                            <span>SSD NVMe 512GB PCIe 4.0</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🔌</span>
+                            <span>Placa Madre B660M + Fuente 600W 80+</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🖥️</span>
+                            <span>Monitor 24" IPS 144Hz Gaming</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">⌨️</span>
+                            <span>Teclado Mecánico + Mouse Gaming</span>
+                        </div>
+                    </div>
+
+                    <div class="combo-price-container">
+                        <span class="combo-price">S/ 1,450</span>
+                        <div class="combo-price-label">💰 Precio Final | Todo Incluido</div>
+                    </div>
+
+                    <button class="btn-combo" onclick="agregarCombo(2)">
+                        🛒 Agregar al Carrito
+                    </button>
+                </div>
+
+                <!-- Combo 3: Gaming High-End -->
+                <div class="combo-card">
+                    <span class="combo-badge">👑 GAMING HIGH-END</span>
+                    <h3 class="combo-title">PC Gamer Ultimate</h3>
+                    <div class="combo-icon">👑</div>
+                    
+                    <div class="combo-specs">
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🔥</span>
+                            <span>Intel Core i5 13400F (10 Cores, 16 Threads)</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🎮</span>
+                            <span>RTX 3050 8GB GDDR6 (Ray Tracing)</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">💾</span>
+                            <span>16GB RAM DDR4 3200MHz (Dual Channel)</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">💿</span>
+                            <span>SSD NVMe 512GB PCIe 4.0</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🔌</span>
+                            <span>Placa Madre B760M + Fuente 700W 80+ Bronze</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">🖥️</span>
+                            <span>Monitor 24" IPS 165Hz G-Sync Compatible</span>
+                        </div>
+                        <div class="combo-spec-item">
+                            <span class="combo-spec-icon">⌨️</span>
+                            <span>Combo Periféricos Gaming RGB Premium</span>
+                        </div>
+                    </div>
+
+                    <div class="combo-price-container">
+                        <span class="combo-price">S/ 1,780</span>
+                        <div class="combo-price-label">💰 Precio Final | Todo Incluido</div>
+                    </div>
+
+                    <button class="btn-combo" onclick="agregarCombo(3)">
+                        🛒 Agregar al Carrito
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories -->
+        <section id="productos">
+            <h2 class="section-title">💎 Catálogo Completo</h2>
+            <p class="section-subtitle">Encuentra todos los componentes para tu setup perfecto</p>
+
+            <div class="categories">
+                <div class="category-btn active" onclick="filtrarCategoria('TODOS')">🌟 TODOS</div>
+                <div class="category-btn" onclick="filtrarCategoria('LAPTOP')">💻 LAPTOPS</div>
+                <div class="category-btn" onclick="filtrarCategoria('PROCESADOR')">🔥 CPU</div>
+                <div class="category-btn" onclick="filtrarCategoria('MONITOR')">🖥️ MONITORES</div>
+                <div class="category-btn" onclick="filtrarCategoria('GPU')">🎮 GPU</div>
+                <div class="category-btn" onclick="filtrarCategoria('RAM')">💾 RAM</div>
+                <div class="category-btn" onclick="filtrarCategoria('SSD')">💿 SSD</div>
+                <div class="category-btn" onclick="filtrarCategoria('MOTHER')">🔌 MOTHER</div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filters-grid">
+                    <div class="filter-item">
+                        <label>🏷️ Marca</label>
+                        <select id="filtroMarca" onchange="filtrarProductos()">
+                            <option value="">Todas las marcas</option>
+                            <option value="INTEL">Intel</option>
+                            <option value="AMD">AMD</option>
+                            <option value="NVIDIA">Nvidia</option>
+                            <option value="LENOVO">Lenovo</option>
+                            <option value="HP">HP</option>
+                            <option value="ASUS">Asus</option>
+                            <option value="GIGABYTE">Gigabyte</option>
+                            <option value="MSI">MSI</option>
+                            <option value="KINGSTON">Kingston</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>💰 Precio Máximo</label>
+                        <input type="number" id="filtroPrecio" placeholder="S/ 0" onchange="filtrarProductos()">
+                    </div>
+                    <div class="filter-item">
+                        <label>🔍 Buscar</label>
+                        <input type="text" id="filtroBuscar" placeholder="Buscar producto..." onkeyup="filtrarProductos()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Counter -->
+            <div class="products-counter" id="productosContador">
+                Mostrando 0 productos
+            </div>
+
+            <!-- Products Table -->
+            <div class="products-table">
+                <div class="table-header">
+                    <div>IMAGEN</div>
+                    <div>PRODUCTO</div>
+                    <div>STOCK</div>
+                    <div>PRECIO</div>
+                    <div>ACCIONES</div>
+                </div>
+                <div id="productosContainer">
+                    <!-- Products loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact-section" id="contacto">
+            <h2 class="section-title">📞 Contáctanos</h2>
+            <p class="section-subtitle">Estamos listos para ayudarte con tu compra</p>
+
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="contact-icon">📱</div>
+                    <h3>WhatsApp</h3>
+                    <p style="font-weight: 600; font-size: 1.1rem;">+51 999 888 777</p>
+                    <p style="color: var(--gray); margin-top: 0.5rem;">Respuesta inmediata 24/7</p>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">📧</div>
+                    <h3>Email</h3>
+                    <p style="font-weight: 600; font-size: 1.1rem;">ventas@grycellstore.pe</p>
+                    <p style="color: var(--gray); margin-top: 0.5rem;">Cotizaciones empresariales</p>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">📍</div>
+                    <h3>Ubicación</h3>
+                    <p style="font-weight: 600; font-size: 1.1rem;">Lima, Perú</p>
+                    <p style="color: var(--gray); margin-top: 0.5rem;">Envíos a todo el país</p>
+                </div>
+            </div>
+
+            <form class="contact-form" onsubmit="enviarFormulario(event)">
+                <h3 style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem; color: var(--primary);">
+                    Envíanos tu consulta
+                </h3>
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono / WhatsApp</label>
+                    <input type="tel" required>
+                </div>
+                <div class="form-group">
+                    <label>Mensaje</label>
+                    <textarea required placeholder="Cuéntanos qué necesitas..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Enviar Mensaje 🚀</button>
+            </form>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>⚡ Grycell Store</h3>
+                <p>Tu tienda premium de tecnología en Perú. Trabajamos con las mejores marcas del mercado.</p>
+                <p style="margin-top: 1rem; font-weight: 600;">🏆 +5 años en el mercado</p>
+                <p style="margin-top: 0.5rem;">⭐ Miles de clientes satisfechos</p>
+            </div>
+            <div class="footer-section">
+                <h3>Categorías</h3>
+                <ul>
+                    <li><a href="#combos">🎮 Combos PC</a></li>
+                    <li><a href="#laptops">💻 Laptops</a></li>
+                    <li><a href="#procesadores">🔥 Procesadores</a></li>
+                    <li><a href="#monitores">🖥️ Monitores</a></li>
+                    <li><a href="#gpu">🎮 Tarjetas de Video</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <ul>
+                    <li>📱 WhatsApp: +51 999 888 777</li>
+                    <li>📧 ventas@grycellstore.pe</li>
+                    <li>📍 Lima, Perú</li>
+                    <li>🚚 Envíos a todo el país</li>
+                    <li>💳 Todos los medios de pago</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Horario</h3>
+                <ul>
+                    <li>Lunes a Viernes:</li>
+                    <li>9:00 AM - 6:00 PM</li>
+                    <li style="margin-top: 0.5rem;">Sábados:</li>
+                    <li>9:00 AM - 2:00 PM</li>
+                    <li style="margin-top: 0.5rem;">Domingos: Cerrado</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Grycell Store - Todos los derechos reservados</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">Diseñado con ❤️ en Perú | RUC: XXXXXXXXXX</p>
+        </div>
+    </footer>
+
+    <!-- Cart Modal -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-content">
+            <div class="cart-header">
+                <h2>🛒 Tu Carrito</h2>
+                <span class="close-cart" onclick="toggleCart()">✕</span>
+            </div>
+            <div id="cartItems"></div>
+            <div class="cart-total" id="cartTotal"></div>
+            <button class="btn-checkout" onclick="finalizarCompra()">
+                💬 Enviar Pedido por WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // 🔥 FIREBASE CONFIGURATION
+        // ========================================
+        // IMPORTANTE: Reemplaza esto con TU configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY_AQUI",
+            authDomain: "tu-proyecto.firebaseapp.com",
+            projectId: "tu-proyecto",
+            storageBucket: "tu-proyecto.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:xxxxx"
+        };
+
+        // Inicializar Firebase
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log('✅ Firebase conectado correctamente');
+        } catch (error) {
+            console.log('⚠️ Firebase no configurado. Pedidos no se guardarán en base de datos.');
+            console.log('Para activar Firebase, sigue las instrucciones en la guía.');
+        }
+
+        // ========================================
+        // 📦 FUNCIONES FIREBASE
+        // ========================================
+        
+        // Guardar pedido en Firebase
+        async function guardarPedidoFirebase(carrito, total, clienteInfo = {}) {
+            if (!db) {
+                console.log('⚠️ Firebase no está configurado');
+                return null;
+            }
+            
+            try {
+                const pedido = {
+                    productos: carrito.map(item => ({
+                        id: item.id,
+                        nombre: item.nombre,
+                        precio: item.precio,
+                        cantidad: item.cantidad,
+                        subtotal: item.precio * item.cantidad
+                    })),
+                    total: total,
+                    fecha: new Date().toISOString(),
+                    fechaLegible: new Date().toLocaleString('es-PE'),
+                    estado: 'pendiente',
+                    cliente: clienteInfo
+                };
+                
+                const docRef = await db.collection('pedidos').add(pedido);
+                console.log('✅ Pedido guardado con ID:', docRef.id);
+                return docRef.id;
+            } catch (error) {
+                console.error('❌ Error al guardar pedido:', error);
+                return null;
+            }
+        }
+
+        // Guardar cliente en Firebase
+        async function guardarClienteFirebase(nombre, email, telefono, mensaje) {
+            if (!db) return null;
+            
+            try {
+                const cliente = {
+                    nombre: nombre,
+                    email: email,
+                    telefono: telefono,
+                    mensaje: mensaje,
+                    fecha: new Date().toISOString(),
+                    fechaLegible: new Date().toLocaleString('es-PE')
+                };
+                
+                const docRef = await db.collection('clientes').add(cliente);
+                console.log('✅ Cliente guardado con ID:', docRef.id);
+                return docRef.id;
+            } catch (error) {
+                console.error('❌ Error al guardar cliente:', error);
+                return null;
+            }
+        }
+
+        // ========================================
+        // 📊 PRODUCTOS DATABASE
+        // ========================================
+        const productos = [
+            // LAPTOPS
+            {id: 9044, nombre: "LAPTOP HP 240 G10, R3 7320U, 8GB DDR4, 256GB SSD, 14P HD", marca: "HP", categoria: "LAPTOP", specs: "AMD Ryzen 3 7320U • 8GB DDR4 • 256GB SSD • 14\"", precioBase: 184, precio: 239, stock: 10, imagen: "💻"},
+            {id: 6305, nombre: "LAPTOP LENOVO V15, R3 7320U, 8GB GDDR5, 256GB PCE 4.0, 15.6P FHD", marca: "LENOVO", categoria: "LAPTOP", specs: "AMD Ryzen 3 7320U • 8GB GDDR5 • 256GB PCIe • 15.6\" FHD", precioBase: 999, precio: 1299, stock: 10, imagen: "💻"},
+            {id: 8728, nombre: "LAPTOP HP 255 G10, R3 7320U, 8GB DDR5, 256GB, 15.6P HD", marca: "HP", categoria: "LAPTOP", specs: "AMD Ryzen 3 7320U • 8GB DDR5 • 256GB SSD • 15.6\"", precioBase: 1029, precio: 1338, stock: 6, imagen: "💻"},
+            {id: 9361, nombre: "LAPTOP LENOVO V15 G4, I3 1315U, 8GB DDR4, 256GB PCLE 4.0, 15.6P FHD", marca: "LENOVO", categoria: "LAPTOP", specs: "Intel Core i3 1315U • 8GB DDR4 • 256GB PCIe • 15.6\" FHD", precioBase: 1031, precio: 1340, stock: 3, imagen: "💻"},
+            {id: 8730, nombre: "LAPTOP LENOVO IP3 15IAU7, I3 N305, 8GB DDR4, 512GB SSD, 15.6P", marca: "LENOVO", categoria: "LAPTOP", specs: "Intel i3 N305 • 8GB DDR4 • 512GB SSD • 15.6\" Frost Blue", precioBase: 1165, precio: 1515, stock: 5, imagen: "💻"},
+            {id: 2201, nombre: "LAPTOP HP 15-FD0013LA, I5 1335U, 8GB DDR4, 512GB SSD, 15.6P FHD", marca: "HP", categoria: "LAPTOP", specs: "Intel Core i5 1335U • 8GB DDR4 • 512GB SSD • 15.6\" FHD", precioBase: 1599, precio: 2079, stock: 8, imagen: "💻"},
+            {id: 3302, nombre: "LAPTOP LENOVO IDEAPAD GAMING 3, R5 5600H, RTX 3050 4GB, 16GB, 512GB", marca: "LENOVO", categoria: "LAPTOP", specs: "Ryzen 5 5600H • RTX 3050 4GB • 16GB RAM • 512GB • 15.6\" FHD", precioBase: 2499, precio: 3249, stock: 5, imagen: "🎮"},
+            // PROCESADORES INTEL
+            {id: 6196, nombre: "PROCESADOR INTEL CORE I3 10100F, 4 CORES, 8 THREADS, 3.6GHz", marca: "INTEL", categoria: "PROCESADOR", specs: "4 Cores • 8 Threads • 3.6GHz Base • Socket LGA1200", precioBase: 179, precio: 233, stock: 7, imagen: "🔥"},
+            {id: 6709, nombre: "PROCESADOR INTEL CORE I3 12100F, 4 CORES, 8 THREADS, 3.3GHz", marca: "INTEL", categoria: "PROCESADOR", specs: "4 Cores • 8 Threads • 3.3GHz Base • Socket LGA1700", precioBase: 235, precio: 306, stock: 10, imagen: "🔥"},
+            {id: 6355, nombre: "PROCESADOR INTEL CORE I5 10400F, 6 CORES, 12 THREADS, 2.9GHz", marca: "INTEL", categoria: "PROCESADOR", specs: "6 Cores • 12 Threads • 2.9GHz Base • Socket LGA1200", precioBase: 305, precio: 397, stock: 10, imagen: "🔥"},
+            {id: 7041, nombre: "PROCESADOR INTEL CORE I5 12400F, 6 CORES, 12 THREADS, 2.5GHz", marca: "INTEL", categoria: "PROCESADOR", specs: "6 Cores • 12 Threads • 2.5GHz Base • Socket LGA1700", precioBase: 319, precio: 415, stock: 1, imagen: "🔥"},
+            {id: 7043, nombre: "PROCESADOR INTEL CORE I5 13400F, 10 CORES, 16 THREADS, 2.5GHz", marca: "INTEL", categoria: "PROCESADOR", specs: "10 Cores • 16 Threads • 2.5GHz Base • Socket LGA1700", precioBase: 475, precio: 618, stock: 10, imagen: "🔥"},
+            // PROCESADORES AMD
+            {id: 8288, nombre: "PROCESADOR AMD RYZEN 5 4500, 6 CORES, 12 THREADS, 3.6GHz", marca: "AMD", categoria: "PROCESADOR", specs: "6 Cores • 12 Threads • 3.6GHz Base • Socket AM4", precioBase: 349, precio: 454, stock: 2, imagen: "🔥"},
+            {id: 7301, nombre: "PROCESADOR AMD RYZEN 5 5500, 6 CORES, 12 THREADS, 3.6GHz", marca: "AMD", categoria: "PROCESADOR", specs: "6 Cores • 12 Threads • 3.6GHz Base • Socket AM4", precioBase: 429, precio: 558, stock: 8, imagen: "🔥"},
+            {id: 7302, nombre: "PROCESADOR AMD RYZEN 5 5600, 6 CORES, 12 THREADS, 3.5GHz", marca: "AMD", categoria: "PROCESADOR", specs: "6 Cores • 12 Threads • 3.5GHz Base • Socket AM4", precioBase: 549, precio: 714, stock: 10, imagen: "🔥"},
+            // MONITORES
+            {id: 6394, nombre: "MONITOR ASROCK CHALLENGER CL25CFF, 25P, 100HZ, 1MS, IPS, FREESYNC", marca: "ASROCK", categoria: "MONITOR", specs: "25\" • 100Hz • 1ms • IPS • FreeSync • sRGB 99%", precioBase: 399, precio: 519, stock: 20, imagen: "🖥️"},
+            {id: 9006, nombre: "MONITOR CYBERTEL MF22FC, 22P, PLANO, FHD, 100HZ", marca: "CYBERTEL", categoria: "MONITOR", specs: "22\" • Full HD • 100Hz • Panel VA • HDMI + VGA", precioBase: 289, precio: 376, stock: 15, imagen: "🖥️"},
+            {id: 7801, nombre: "MONITOR LG 24MK430H, 24P, IPS, FULL HD, 75HZ, HDMI", marca: "LG", categoria: "MONITOR", specs: "24\" • Full HD • IPS • 75Hz • AMD FreeSync • HDMI", precioBase: 449, precio: 584, stock: 10, imagen: "🖥️"},
+            {id: 8901, nombre: "MONITOR GAMER AOC 24G2, 24P, IPS, 144HZ, 1MS, FREESYNC PREMIUM", marca: "AOC", categoria: "MONITOR", specs: "24\" • Full HD • IPS • 144Hz • 1ms • FreeSync Premium", precioBase: 749, precio: 974, stock: 10, imagen: "🖥️"},
+            // TARJETAS DE VIDEO
+            {id: 5001, nombre: "TARJETA DE VIDEO ASUS GT 1030 2GB GDDR5", marca: "NVIDIA", categoria: "GPU", specs: "GT 1030 • 2GB GDDR5 • HDMI + DVI • Low Profile", precioBase: 349, precio: 454, stock: 8, imagen: "🎮"},
+            {id: 5002, nombre: "TARJETA DE VIDEO GIGABYTE GTX 1650 4GB GDDR6", marca: "NVIDIA", categoria: "GPU", specs: "GTX 1650 • 4GB GDDR6 • HDMI + DP • Turing", precioBase: 649, precio: 844, stock: 10, imagen: "🎮"},
+            {id: 5003, nombre: "TARJETA DE VIDEO MSI GTX 1660 SUPER 6GB GDDR6", marca: "NVIDIA", categoria: "GPU", specs: "GTX 1660 Super • 6GB GDDR6 • HDMI + 3xDP • Twin Frozr", precioBase: 999, precio: 1299, stock: 7, imagen: "🎮"},
+            {id: 5004, nombre: "TARJETA DE VIDEO ASUS TUF RTX 3050 8GB GDDR6", marca: "NVIDIA", categoria: "GPU", specs: "RTX 3050 • 8GB GDDR6 • HDMI + 3xDP • Ray Tracing • DLSS", precioBase: 1299, precio: 1689, stock: 6, imagen: "🎮"},
+            // MEMORIA RAM
+            {id: 4001, nombre: "MEMORIA RAM KINGSTON FURY BEAST 8GB DDR4 3200MHZ", marca: "KINGSTON", categoria: "RAM", specs: "8GB • DDR4 • 3200MHz • CL16 • 1.35V", precioBase: 99, precio: 129, stock: 20, imagen: "💾"},
+            {id: 4002, nombre: "MEMORIA RAM KINGSTON FURY BEAST 16GB DDR4 3200MHZ", marca: "KINGSTON", categoria: "RAM", specs: "16GB • DDR4 • 3200MHz • CL16 • 1.35V", precioBase: 179, precio: 233, stock: 15, imagen: "💾"},
+            {id: 4003, nombre: "MEMORIA RAM CORSAIR VENGEANCE LPX 16GB DDR4 3200MHZ", marca: "CORSAIR", categoria: "RAM", specs: "16GB • DDR4 • 3200MHz • CL16 • Low Profile", precioBase: 189, precio: 246, stock: 12, imagen: "💾"},
+            // SSD
+            {id: 3001, nombre: "SSD KINGSTON A400 240GB SATA 2.5", marca: "KINGSTON", categoria: "SSD", specs: "240GB • SATA III • 500MB/s Read • 350MB/s Write", precioBase: 89, precio: 116, stock: 20, imagen: "💿"},
+            {id: 3002, nombre: "SSD KINGSTON A400 480GB SATA 2.5", marca: "KINGSTON", categoria: "SSD", specs: "480GB • SATA III • 500MB/s Read • 450MB/s Write", precioBase: 149, precio: 194, stock: 15, imagen: "💿"},
+            {id: 3101, nombre: "SSD KINGSTON NV2 500GB M.2 NVME PCIE 4.0", marca: "KINGSTON", categoria: "SSD", specs: "500GB • NVMe PCIe 4.0 • 3500MB/s Read • 2100MB/s Write", precioBase: 179, precio: 233, stock: 18, imagen: "💿"},
+            // PLACAS MADRE
+            {id: 2001, nombre: "PLACA MADRE GIGABYTE H610M H DDR4 LGA1700", marca: "GIGABYTE", categoria: "MOTHER", specs: "Socket LGA1700 • H610 • DDR4 • M.2 • HDMI • Micro ATX", precioBase: 249, precio: 324, stock: 10, imagen: "🔌"},
+            {id: 2002, nombre: "PLACA MADRE ASUS PRIME B660M-A DDR4 LGA1700", marca: "ASUS", categoria: "MOTHER", specs: "Socket LGA1700 • B660 • DDR4 • M.2 • PCIe 4.0 • Micro ATX", precioBase: 399, precio: 519, stock: 8, imagen: "🔌"},
+        ];
+
+        // COMBOS DATABASE
+        const combos = [
+            {
+                id: 'combo1',
+                nombre: 'PC Gamer Starter',
+                precio: 1210,
+                specs: 'i3 12100F + GTX 1650 + 16GB RAM + 480GB SSD + Monitor 22" + Periféricos',
+                imagen: '🎮'
+            },
+            {
+                id: 'combo2',
+                nombre: 'PC Gamer Pro',
+                precio: 1450,
+                specs: 'i5 12400F + GTX 1660 Super + 16GB RAM + 512GB NVMe + Monitor 24" 144Hz + Periféricos',
+                imagen: '🚀'
+            },
+            {
+                id: 'combo3',
+                nombre: 'PC Gamer Ultimate',
+                precio: 1780,
+                specs: 'i5 13400F + RTX 3050 + 16GB RAM + 512GB NVMe + Monitor 24" 165Hz + Periféricos Premium',
+                imagen: '👑'
+            }
+        ];
+
+        let carrito = [];
+        let productosFiltrados = [...productos];
+        let categoriaActual = 'TODOS';
+
+        // Agregar combo al carrito
+        function agregarCombo(comboId) {
+            const combo = combos[comboId - 1];
+            const itemExistente = carrito.find(item => item.id === combo.id);
+
+            if (itemExistente) {
+                itemExistente.cantidad++;
+            } else {
+                carrito.push({...combo, cantidad: 1, stock: 5});
+            }
+
+            actualizarCarrito();
+            mostrarNotificacion();
+        }
+
+        // Cargar productos
+        function cargarProductos() {
+            const container = document.getElementById('productosContainer');
+            const contador = document.getElementById('productosContador');
+            
+            contador.textContent = `Mostrando ${productosFiltrados.length} productos`;
+            
+            if (productosFiltrados.length === 0) {
+                container.innerHTML = '<div style="padding: 3rem; text-align: center; color: var(--gray);">No se encontraron productos</div>';
+                return;
+            }
+
+            container.innerHTML = productosFiltrados.map(producto => `
+                <div class="product-row">
+                    <div class="product-img">${producto.imagen}</div>
+                    <div class="product-info">
+                        <h3>${producto.nombre}</h3>
+                        <div class="product-id">ID: ${producto.id}</div>
+                        <div style="font-size: 0.85rem; color: var(--gray); margin-top: 0.3rem;">
+                            ${producto.specs}
+                        </div>
+                        <span class="product-category">${producto.categoria}</span>
+                    </div>
+                    <div class="product-stock">${producto.stock > 10 ? '>10' : producto.stock}</div>
+                    <div class="product-price">
+                        <span class="price-original">Base: S/ ${producto.precioBase}</span>
+                        <span class="price-value">S/ ${producto.precio}</span>
+                        <span class="price-badge">+30%</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn-action btn-add" onclick="agregarAlCarrito(${producto.id})">🛒</button>
+                        <button class="btn-action btn-view" onclick="verDetalles(${producto.id})">👁️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filtrar categoría
+        function filtrarCategoria(categoria) {
+            categoriaActual = categoria;
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            filtrarProductos();
+        }
+
+        // Filtrar productos
+        function filtrarProductos() {
+            const marca = document.getElementById('filtroMarca').value;
+            const precioMax = parseFloat(document.getElementById('filtroPrecio').value) || Infinity;
+            const busqueda = document.getElementById('filtroBuscar').value.toLowerCase();
+
+            productosFiltrados = productos.filter(p => {
+                const cumpleCategoria = categoriaActual === 'TODOS' || p.categoria === categoriaActual;
+                const cumpleMarca = !marca || p.marca === marca || p.nombre.includes(marca);
+                const cumplePrecio = p.precio <= precioMax;
+                const cumpleBusqueda = !busqueda || 
+                    p.nombre.toLowerCase().includes(busqueda) ||
+                    p.specs.toLowerCase().includes(busqueda);
+                
+                return cumpleCategoria && cumpleMarca && cumplePrecio && cumpleBusqueda;
+            });
+
+            cargarProductos();
+        }
+
+        // Ver detalles
+        function verDetalles(id) {
+            const producto = productos.find(p => p.id === id);
+            alert(`📋 ${producto.nombre}\n\n${producto.specs}\n\n💰 Precio: S/ ${producto.precio}\n📦 Stock: ${producto.stock}`);
+        }
+
+        // Agregar al carrito
+        function agregarAlCarrito(id) {
+            const producto = productos.find(p => p.id === id);
+            const itemExistente = carrito.find(item => item.id === id);
+
+            if (itemExistente) {
+                if (itemExistente.cantidad < producto.stock) {
+                    itemExistente.cantidad++;
+                } else {
+                    alert('⚠️ No hay más stock disponible');
+                    return;
+                }
+            } else {
+                carrito.push({...producto, cantidad: 1});
+            }
+
+            actualizarCarrito();
+            mostrarNotificacion();
+        }
+
+        // Mostrar notificación
+        function mostrarNotificacion() {
+            const notif = document.getElementById('notification');
+            notif.style.display = 'block';
+            setTimeout(() => notif.style.display = 'none', 2000);
+        }
+
+        // Actualizar carrito
+        function actualizarCarrito() {
+            const cartCount = document.getElementById('cartCount');
+            const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+            cartCount.textContent = totalItems;
+
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+
+            if (carrito.length === 0) {
+                cartItems.innerHTML = '<div class="cart-empty">🛒 Tu carrito está vacío</div>';
+                cartTotal.innerHTML = '';
+                return;
+            }
+
+            cartItems.innerHTML = carrito.map(item => `
+                <div class="cart-item">
+                    <div class="cart-item-img">${item.imagen}</div>
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.nombre}</div>
+                        <div class="cart-item-price">S/ ${item.precio}</div>
+                        <div class="cart-item-quantity">
+                            <button class="btn-qty" onclick="cambiarCantidad('${item.id}', -1)">-</button>
+                            <span style="font-weight: 700; min-width: 30px; text-align: center;">${item.cantidad}</span>
+                            <button class="btn-qty" onclick="cambiarCantidad('${item.id}', 1)">+</button>
+                            <span style="margin-left: 1rem; color: var(--gray); font-size: 0.9rem;">
+                                Subtotal: S/ ${(item.precio * item.cantidad).toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn-remove" onclick="eliminarDelCarrito('${item.id}')">🗑️</button>
+                </div>
+            `).join('');
+
+            const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+            cartTotal.innerHTML = `💰 Total: S/ ${total.toFixed(2)}`;
+        }
+
+        // Cambiar cantidad
+        function cambiarCantidad(id, cambio) {
+            const item = carrito.find(item => item.id == id);
+            if (item) {
+                const nuevaCantidad = item.cantidad + cambio;
+                if (nuevaCantidad <= 0) {
+                    eliminarDelCarrito(id);
+                } else if (nuevaCantidad <= item.stock) {
+                    item.cantidad = nuevaCantidad;
+                    actualizarCarrito();
+                } else {
+                    alert('⚠️ No hay más stock disponible');
+                }
+            }
+        }
+
+        // Eliminar del carrito
+        function eliminarDelCarrito(id) {
+            carrito = carrito.filter(item => item.id != id);
+            actualizarCarrito();
+        }
+
+        // Toggle carrito
+        function toggleCart() {
+            const modal = document.getElementById('cartModal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // Finalizar compra
+        async function finalizarCompra() {
+            if (carrito.length === 0) {
+                alert('🛒 Tu carrito está vacío');
+                return;
+            }
+
+            const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+            
+            // 🔥 GUARDAR EN FIREBASE
+            const pedidoId = await guardarPedidoFirebase(carrito, total);
+            
+            // Crear mensaje WhatsApp
+            let mensaje = '🛒 *PEDIDO GRYCELL STORE*%0A';
+            if (pedidoId) {
+                mensaje += `📋 ID: ${pedidoId}%0A`;
+            }
+            mensaje += `%0A`;
+            
+            carrito.forEach(item => {
+                mensaje += `✅ ${item.nombre}%0A`;
+                mensaje += `   📦 Cantidad: ${item.cantidad}%0A`;
+                mensaje += `   💰 Precio: S/ ${item.precio}%0A`;
+                mensaje += `   💵 Subtotal: S/ ${(item.precio * item.cantidad).toFixed(2)}%0A%0A`;
+            });
+            
+            mensaje += `━━━━━━━━━━━━━━━━%0A`;
+            mensaje += `💰 *TOTAL: S/ ${total.toFixed(2)}*%0A`;
+            mensaje += `━━━━━━━━━━━━━━━━%0A%0A`;
+            mensaje += `📞 Por favor, confirma mi pedido.`;
+
+            const telefono = '51999888777';
+            window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
+            
+            // Limpiar carrito
+            carrito = [];
+            actualizarCarrito();
+            toggleCart();
+        }
+
+        // Enviar formulario
+        async function enviarFormulario(e) {
+            e.preventDefault();
+            
+            const nombre = e.target[0].value;
+            const email = e.target[1].value;
+            const telefono = e.target[2].value;
+            const mensaje = e.target[3].value;
+            
+            // 🔥 GUARDAR EN FIREBASE
+            await guardarClienteFirebase(nombre, email, telefono, mensaje);
+            
+            alert('✅ ¡Mensaje enviado! Nos contactaremos pronto.');
+            e.target.reset();
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('cartModal').addEventListener('click', function(e) {
+            if (e.target === this) toggleCart();
+        });
+
+        // Inicializar
+        cargarProductos();
+    </script>
+</body>
+</html>
